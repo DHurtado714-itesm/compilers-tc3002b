@@ -153,6 +153,7 @@ class LesserOrEqual(Logic):
     right = float(self.right.eval(env, aTurtle))
     return left <= right
 
+
 class Greater(Logic):
   def __init__(self, left, right):
     self.left = left
@@ -163,15 +164,17 @@ class Greater(Logic):
     right = float(self.right.eval(env, aTurtle))
     return left > right
 
+
 class GreaterOrEqual(Logic):
   def __init__(self, left, right):
     self.left = left
     self.right = right
-  
+
   def eval(self, env, aTurtle):
     left = float(self.left.eval(env, aTurtle))
     right = float(self.right.eval(env, aTurtle))
     return left >= right
+
 
 class Equal(Logic):
   def __init__(self, left, right):
@@ -181,7 +184,8 @@ class Equal(Logic):
   def eval(self, env, aTurtle):
     left = float(self.left.eval(env, aTurtle))
     right = float(self.right.eval(env, aTurtle))
-    return left == right 
+    return left == right
+
 
 class Different(Logic):
   def __init__(self, left, right):
@@ -191,7 +195,8 @@ class Different(Logic):
   def eval(self, env, aTurtle):
     left = float(self.left.eval(env, aTurtle))
     right = float(self.right.eval(env, aTurtle))
-    return left != right 
+    return left != right
+
 
 class And(Logic):
   def __init__(self, left, right):
@@ -356,15 +361,30 @@ class PenUp(Void):
     aTurtle.penup()
 
 
-"""
-Implement
-
 class Arc(Void):
+  def __init__(self, radiusExpression, angleExpression, line):
+    self.line = line
+    self.radiusExpression = radiusExpression
+    self.angleExpression = angleExpression
+
+  def eval(self, env, aTurtle):
+    radius = self.radiusExpression(env, aTurtle)
+    angle = self.angleExpression(env, aTurtle)
+
+    if radius <= 0:
+      raise Exception(f"Line {self.line} expected a positive radius.")
+    if angle <= 0 or angle > 360:
+      raise Exception(f"Line {self.line} expected an angle between 1 and 360.")
+
+    aTurtle.circle(radius, angle)
+
 
 class Circle(Void):
+  pass
+
 
 class Clear(Void):
-"""
+  pass
 
 
 class SetXY(Void):
