@@ -2,7 +2,6 @@ from SymbolTable import *
 from Type import *
 import turtle
 
-
 class Node:
   def eval(self, env, aTurtle):
     pass
@@ -71,13 +70,25 @@ class Add(Numeric):
     return left + right
 
 
-"""
-Implement
-
 class Subtrat(Numeric):
+  def __init__(self, left, right):
+    self.left = left
+    self.right = right
+
+  def eval(self, env, aTurtle):
+    left = float(self.left.eval(env, aTurtle))
+    right = float(self.right.eval(env, aTurtle))
+    return left - right
 
 class Multiply(Numeric):
-"""
+  def __init__(self, left, right):
+    self.left = left
+    self.right = right
+
+  def eval(self, env, aTurtle):
+    left = float(self.left.eval(env, aTurtle))
+    right = float(self.right.eval(env, aTurtle))
+    return left * right
 
 
 class Divide(Numeric):
