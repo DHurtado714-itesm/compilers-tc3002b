@@ -425,19 +425,41 @@ class SetY(Void):
     aTurtle.sety(y)
 
 
-"""
-Implement
-
 class Left(Void):
+  def __init__(self, expression):
+    self.expression = expression
+
+  def eval(self, env, aTurtle):
+    angle = float(self.expression.eval(env, aTurtle))
+    aTurtle.left(angle)
 
 class Right(Void):
+  def __init__(self, expression):
+    self.expression = expression
+
+  def eval(self, env, aTurtle):
+    angle = float(self.expression.eval(env, aTurtle))
+    aTurtle.right(angle)
 
 class Backward(Void):
+  def __init__(self, expression):
+    self.expression = expression
+
+  def eval(self, env, aTurtle):
+    distance = float(self.expression.eval(env, aTurtle))
+    aTurtle.backward(distance)
 
 class Forward(Void):
+  def __init__(self, expression):
+    self.expression = expression
+
+  def eval(self, env, aTurtle):
+    distance = float(self.expression.eval(env, aTurtle))
+    aTurtle.forward(distance)
 
 class Home(Void):
-"""
+  def eval(self, env, aTurtle):
+    aTurtle.home()
 
 
 class Assigment(Void):
