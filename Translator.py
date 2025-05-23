@@ -153,19 +153,45 @@ class LesserOrEqual(Logic):
     right = float(self.right.eval(env, aTurtle))
     return left <= right
 
-
-"""
-Implement
-
 class Greater(Logic):
+  def __init__(self, left, right):
+    self.left = left
+    self.right = right
+
+  def eval(self, env, aTurtle):
+    left = float(self.left.eval(env, aTurtle))
+    right = float(self.right.eval(env, aTurtle))
+    return left > right
 
 class GreaterOrEqual(Logic):
+  def __init__(self, left, right):
+    self.left = left
+    self.right = right
+  
+  def eval(self, env, aTurtle):
+    left = float(self.left.eval(env, aTurtle))
+    right = float(self.right.eval(env, aTurtle))
+    return left >= right
 
 class Equal(Logic):
+  def __init__(self, left, right):
+    self.left = left
+    self.right = right
+
+  def eval(self, env, aTurtle):
+    left = float(self.left.eval(env, aTurtle))
+    right = float(self.right.eval(env, aTurtle))
+    return left == right 
 
 class Different(Logic):
-"""
+  def __init__(self, left, right):
+    self.left = left
+    self.right = right
 
+  def eval(self, env, aTurtle):
+    left = float(self.left.eval(env, aTurtle))
+    right = float(self.right.eval(env, aTurtle))
+    return left != right 
 
 class And(Logic):
   def __init__(self, left, right):
