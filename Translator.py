@@ -380,11 +380,20 @@ class Arc(Void):
 
 
 class Circle(Void):
-  pass
+  def __init__(self, radiusExpression, line):
+    self.line = line
+    self.radiusExpression = radiusExpression
+
+  def eval(self, env, aTurtle):
+    radius = self.radiusExpression.eval(env, aTurtle)
+    if radius <= 0:
+      raise Exception(f"Line {self.line} expected a positive radius.")
+    aTurtle.circle(radius)
 
 
 class Clear(Void):
-  pass
+  def eval(self, env, aTurtle):
+    aTurtle.clear()
 
 
 class SetXY(Void):
