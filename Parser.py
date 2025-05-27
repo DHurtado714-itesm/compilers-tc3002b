@@ -246,7 +246,7 @@ class Parser:
       self.error("expected an additive expression before " + str(self.token))
 
   def extendedRelationalExpression(self, left):
-    if self.token.tag in self.firstExtendedRelationExpresion:
+    if self.token.tag in self.firstExtendedRelationalExpression:
       if self.token.tag == ord("<"):
         self.check(ord("<"))
 
@@ -418,14 +418,14 @@ class Parser:
     else:
       self.error("expected an repetitive expression before " + str(self.token))
 
-  # def structuredStatement(self):
-  #   if self.token.tag in self.firstStructuredStatement:
-  #     if self.token.tag in self.firstConditionalStatement:
-  #       self.conditionalStatement()
-  #     elif self.token.tag == Tag.WHILE:
-  #       self.repetitiveStatement()
-  #   else:
-  #     self.error("expected an structured expression before " + str(self.token))
+  def structuredStatement(self):
+    if self.token.tag in self.firstStructuredStatement:
+      if self.token.tag in self.firstConditionalStatement:
+        return self.conditionalStatement()
+      elif self.token.tag == Tag.WHILE:
+        return self.repetitiveStatement()
+    else:
+      self.error("expected an structured expression before " + str(self.token))
 
   def element(self):
     if self.token.tag == Tag.STRING:
@@ -696,18 +696,21 @@ class Parser:
     return identifiers
 
   def declarationStatement(self):
-    if self.token.tag == Tag.VAR:
-      self.check(Tag.VAR)
+    self.check(Tag.VAR)
 
-      if self.token.tag == Tag.ID:
-        identifiers = [self.token.value]
-        self.check(Tag.ID)
-        identifiers += self.identifierList()
-        return IdDeclaration(identifiers, self.lexer.line)
-      else:
-        self.error("expected an identifier after VAR")
+    if self.token.tag == Tag.ID:
+      identifiers = [self.token.value]
+      self.check(Tag.ID)
+      identifiers += self.identifierList()
+
+      # Creamos un StatementSequence anidado de declaraciones individuales
+      seq = None
+      for varname in reversed(identifiers):
+        seq = StatementSequence(IdDeclaration(varname, self.lexer.line), seq)
+      return seq
+
     else:
-      self.error("expected a VAR declaration before " + str(self.token))
+      self.error("expected an identifier after VAR")
 
   def simpleStatement(self):
     if self.token.tag in self.firstSimpleStatement:
@@ -734,11 +737,12 @@ class Parser:
       self.error("expected a statement before " + str(self.token))
 
   def statementSequence(self):
-    statements = []
-    while self.token.tag in self.firstStatement:
+    if self.token.tag in self.firstStatement:
       stmt = self.statement()
-      statements.append(stmt)
-    return StatementSequence(statements)
+      rest = self.statementSequence()
+      return StatementSequence(stmt, rest)
+    else:
+      return None
 
   def program(self):
     if self.token.tag in self.firstProgram:
