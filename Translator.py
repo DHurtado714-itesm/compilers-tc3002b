@@ -2,6 +2,7 @@ from SymbolTable import *
 from Type import *
 import turtle
 
+
 class Node:
   def eval(self, env, aTurtle):
     pass
@@ -70,7 +71,7 @@ class Add(Numeric):
     return left + right
 
 
-class Subtrat(Numeric):
+class Subtract(Numeric):
   def __init__(self, left, right):
     self.left = left
     self.right = right
@@ -79,6 +80,7 @@ class Subtrat(Numeric):
     left = float(self.left.eval(env, aTurtle))
     right = float(self.right.eval(env, aTurtle))
     return left - right
+
 
 class Multiply(Numeric):
   def __init__(self, left, right):
@@ -444,6 +446,7 @@ class Left(Void):
     angle = float(self.expression.eval(env, aTurtle))
     aTurtle.left(angle)
 
+
 class Right(Void):
   def __init__(self, expression):
     self.expression = expression
@@ -451,6 +454,7 @@ class Right(Void):
   def eval(self, env, aTurtle):
     angle = float(self.expression.eval(env, aTurtle))
     aTurtle.right(angle)
+
 
 class Backward(Void):
   def __init__(self, expression):
@@ -460,6 +464,7 @@ class Backward(Void):
     distance = float(self.expression.eval(env, aTurtle))
     aTurtle.backward(distance)
 
+
 class Forward(Void):
   def __init__(self, expression):
     self.expression = expression
@@ -467,6 +472,7 @@ class Forward(Void):
   def eval(self, env, aTurtle):
     distance = float(self.expression.eval(env, aTurtle))
     aTurtle.forward(distance)
+
 
 class Home(Void):
   def eval(self, env, aTurtle):
@@ -506,7 +512,7 @@ class IdDeclaration(Void):
       raise Exception(text)
 
 
-class idDeclarationList(Void):
+class IdDeclarationList(Void):
   def __init__(self, idDeclaration, idDeclarationList=None):
     self.idDeclaration = idDeclaration
     self.idDeclarationList = idDeclarationList
