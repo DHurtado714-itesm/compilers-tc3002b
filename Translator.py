@@ -370,7 +370,7 @@ class PenDown(Void):
 
 
 class PenUp(Void):
-  def eval(self, env, aTurtle):
+  def eval(self, aTurtle):
     aTurtle.penup()
 
 
@@ -405,7 +405,7 @@ class Circle(Void):
 
 
 class Clear(Void):
-  def eval(self, env, aTurtle):
+  def eval(self, aTurtle):
     aTurtle.clear()
 
 
