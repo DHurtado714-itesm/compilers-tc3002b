@@ -48,7 +48,7 @@ class Identifier(Numeric):
       (_, value) = result
       return value
     else:
-      text = "Line " + self.line + " - " + self.name + " has not been declared"
+      text = "Line " + str(self.line) + " - " + self.name + " has not been declared"
       raise Exception(text)
 
 
@@ -57,7 +57,7 @@ class Minus(Numeric):
     self.right = right
 
   def eval(self, env, aTurtle):
-    return -1 * float(self._right.eval(env, aTurtle))
+    return -1 * float(self.right.eval(env, aTurtle))
 
 
 class Add(Numeric):
@@ -71,7 +71,7 @@ class Add(Numeric):
     return left + right
 
 
-class Subtract(Numeric):
+class Substract(Numeric):
   def __init__(self, left, right):
     self.left = left
     self.right = right
@@ -370,42 +370,43 @@ class PenDown(Void):
 
 
 class PenUp(Void):
-  def eval(self, aTurtle):
+  def eval(self, env, aTurtle):
     aTurtle.penup()
 
 
 class Arc(Void):
-  def __init__(self, radiusExpression, angleExpression, line):
-    self.line = line
+  def __init__(self, radiusExpression, degreesExpression):
     self.radiusExpression = radiusExpression
-    self.angleExpression = angleExpression
+    self.degreesExpression = degreesExpression
 
   def eval(self, env, aTurtle):
-    radius = self.radiusExpression(env, aTurtle)
-    angle = self.angleExpression(env, aTurtle)
-
+    radius = self.radiusExpression.eval(env, aTurtle)
     if radius <= 0:
-      raise Exception(f"Line {self.line} expected a positive radius.")
-    if angle <= 0 or angle > 360:
-      raise Exception(f"Line {self.line} expected an angle between 1 and 360.")
+      raise Exception(f"expected a positive radius.")
 
-    aTurtle.circle(radius, angle)
+    degrees = self.degreesExpression.eval(env, aTurtle)
+    if degrees <= 0:
+      raise Exception(f"expected a positive angle in degrees.")
+
+    radius = float(self.radiusExpression.eval(env, aTurtle))
+    degrees = float(self.degreesExpression.eval(env, aTurtle))
+
+    aTurtle.circle(radius, degrees)
 
 
 class Circle(Void):
-  def __init__(self, radiusExpression, line):
-    self.line = line
+  def __init__(self, radiusExpression):
     self.radiusExpression = radiusExpression
 
   def eval(self, env, aTurtle):
     radius = self.radiusExpression.eval(env, aTurtle)
     if radius <= 0:
-      raise Exception(f"Line {self.line} expected a positive radius.")
+      raise Exception(f"expected a positive radius.")
     aTurtle.circle(radius)
 
 
 class Clear(Void):
-  def eval(self, aTurtle):
+  def eval(self, env, aTurtle):
     aTurtle.clear()
 
 
@@ -439,38 +440,38 @@ class SetY(Void):
 
 
 class Left(Void):
-  def __init__(self, expression):
-    self.expression = expression
+  def __init__(self, angle):
+    self.angle = angle
 
   def eval(self, env, aTurtle):
-    angle = float(self.expression.eval(env, aTurtle))
+    angle = float(self.angle.eval(env, aTurtle))
     aTurtle.left(angle)
 
 
 class Right(Void):
-  def __init__(self, expression):
-    self.expression = expression
+  def __init__(self, angle):
+    self.angle = angle
 
   def eval(self, env, aTurtle):
-    angle = float(self.expression.eval(env, aTurtle))
+    angle = float(self.angle.eval(env, aTurtle))
     aTurtle.right(angle)
 
 
 class Backward(Void):
-  def __init__(self, expression):
-    self.expression = expression
+  def __init__(self, distance):
+    self.distance = distance
 
   def eval(self, env, aTurtle):
-    distance = float(self.expression.eval(env, aTurtle))
+    distance = float(self.distance.eval(env, aTurtle))
     aTurtle.backward(distance)
 
 
 class Forward(Void):
-  def __init__(self, expression):
-    self.expression = expression
+  def __init__(self, distance):
+    self.distance = distance
 
   def eval(self, env, aTurtle):
-    distance = float(self.expression.eval(env, aTurtle))
+    distance = float(self.distance.eval(env, aTurtle))
     aTurtle.forward(distance)
 
 
@@ -479,7 +480,7 @@ class Home(Void):
     aTurtle.home()
 
 
-class Assigment(Void):
+class Assignment(Void):
   def __init__(self, id, expression, line):
     self.line = line
     self.id = id
