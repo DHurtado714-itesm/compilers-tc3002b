@@ -45,17 +45,33 @@ class Parser:
 
     self.firstExpression = self.firstConditionalExpression
 
-    self.firstMovementStatement = set(
-      [
-        Tag.FORWARD,
-        Tag.BACKWARD,
-        Tag.RIGHT,
-        Tag.LEFT,
-        Tag.SETX,
-        Tag.SETY,
-        Tag.SETXY,
-        Tag.HOME,
-      ]
+    self.firstSetXYStatement = set([Tag.SETXY])
+
+    self.firstSetXStatement = set([Tag.SETX])
+
+    self.firstSetYStatement = set([Tag.SETY])
+
+    self.firstLeftStatement = set([Tag.LEFT])
+
+    self.firstRightStatement = set([Tag.RIGHT])
+
+    self.firstBackwardStatement = set([Tag.BACKWARD])
+
+    self.firstForwardStatement = set([Tag.FORWARD])
+
+    self.firstMovementStatement = (
+      set(
+        [
+          Tag.HOME,
+        ]
+      )
+      .union(self.firstSetXYStatement)
+      .union(self.firstSetXStatement)
+      .union(self.firstSetYStatement)
+      .union(self.firstLeftStatement)
+      .union(self.firstRightStatement)
+      .union(self.firstBackwardStatement)
+      .union(self.firstForwardStatement)
     )
 
     self.firstDrawingStatement = set(
@@ -230,7 +246,8 @@ class Parser:
 
         # semantic action #
         right = self.multiplicativeExpression()
-        node = Subtract(left, right)
+        node = Substract(left, right)
+
         return self.extendedAdditiveExpression(node)
         # semantic action #
     else:
@@ -298,15 +315,17 @@ class Parser:
 
         right = self.relationalExpression()
         node = Equal(left, right)
+
         return self.extendedEqualityExpression(node)
       elif self.token.tag == Tag.NEQ:
         self.check(Tag.NEQ)
 
         right = self.relationalExpression()
         node = Different(left, right)
+
         return self.extendedEqualityExpression(node)
-      else:
-        return left
+    else:
+      return left
 
   def equalityExpression(self):
     if self.token.tag in self.firstEqualityExpression:
@@ -317,15 +336,14 @@ class Parser:
 
   def extendedConditionalTerm(self, left):
     if self.token.tag in self.firstExtendedConditionalTerm:
-      if self.token.tag == Tag.AND:
-        self.check(Tag.AND)
+      self.check(Tag.AND)
 
-        right = self.equalityExpression()
-        node = And(left, right)
-        return self.extendedConditionalTerm(node)
-      else:
-        # semantic action #
-        return left
+      right = self.equalityExpression()
+      node = And(left, right)
+
+      return self.extendedConditionalTerm(node)
+    else:
+      return left
 
   def conditionalTerm(self):
     if self.token.tag in self.firstConditionalTerm:
@@ -336,18 +354,19 @@ class Parser:
 
   def extendedConditionalExpression(self, left):
     if self.token.tag in self.firstExtendedConditionalExpression:
-      if self.token.tag == Tag.OR:
-        self.check(Tag.OR)
+      self.check(Tag.OR)
 
-        right = self.conditionalTerm()
-        node = Or(left, right)
-        return self.extendedConditionalExpression(node)
-      else:
-        pass
+      right = self.conditionalTerm()
+      node = Or(left, right)
+
+      return self.extendedConditionalExpression(node)
+    else:
+      return left
 
   def conditionalExpression(self):
     if self.token.tag in self.firstConditionalExpression:
       left = self.conditionalTerm()
+
       return self.extendedConditionalExpression(left)
     else:
       self.error("expected a conditional expression before " + str(self.token))
@@ -389,6 +408,7 @@ class Parser:
       self.check(ord("["))
       sequence = self.statementSequence()
       self.check(ord("]"))
+
       return If(condition, sequence)
     else:
       self.error("expected an IF expression before " + str(self.token))
@@ -428,39 +448,34 @@ class Parser:
       self.error("expected an structured expression before " + str(self.token))
 
   def element(self):
-    if self.token.tag == Tag.STRING:
-      current = self.token
-      self.check(Tag.STRING)
-      return String(current.value)
+    if self.token.tag in self.firstElement:
+      if self.token.tag == Tag.STRING:
+        node = String(self.token.value)
+        self.check(Tag.STRING)
 
-    elif self.token.tag in self.firstExpression:
-      return self.expression()
-
+        return node
+      elif self.token.tag in self.firstExpression:
+        return self.expression()
     else:
-      self.error("expected an element (STRING or expression) before " + str(self.token))
+      self.error("expected an element expression before " + str(self.token))
 
-  def elementList(self):
-    element = self.element()
-
+  def elementList(self, elementList=None):
     if self.token.tag == ord(","):
       self.check(ord(","))
-      elementList = self.elementList()
-      return ElementList(element, elementList)
+      element = self.element()
+      node = ElementList(element, elementList)
+
+      return self.elementList(node)
     else:
-      return ElementList(element)
+      return elementList
 
   def textStatement(self):
     if self.token.tag == Tag.PRINT:
       self.check(Tag.PRINT)
+
       self.check(ord("("))
-
       element = self.element()
-
-      elementList = None
-      if self.token.tag == ord(","):
-        self.check(ord(","))
-        elementList = self.elementList()
-
+      elementList = self.elementList()
       self.check(ord(")"))
 
       return Print(element, elementList)
@@ -472,10 +487,10 @@ class Parser:
       self.check(Tag.PENWIDTH)
 
       self.check(ord("("))
-      width = self.expression()
+      expression = self.expression()
       self.check(ord(")"))
 
-      return PenWidth(width)
+      return PenWidth(expression)
     else:
       self.error("expected a PENWIDTH statement before " + str(self.token))
 
@@ -526,31 +541,33 @@ class Parser:
       self.check(Tag.ARC)
 
       self.check(ord("("))
-      angle = self.expression()
+      radius = self.expression()
 
       self.check(ord(","))
 
-      radius = self.expression()
+      degrees = self.expression()
       self.check(ord(")"))
 
-      return Arc(radius, angle, self.lexer.line)
+      return Arc(radius, degrees)
     else:
       self.error("expected a ARC statement before " + str(self.token))
 
   def circleStatement(self):
     if self.token.tag == Tag.CIRCLE:
       self.check(Tag.CIRCLE)
+
       self.check(ord("("))
-      expression = self.expression()
+      radius = self.expression()
       self.check(ord(")"))
 
-      return Circle(expression, self.lexer.line)
+      return Circle(radius)
     else:
       self.error("expected a CIRCLE statement before " + str(self.token))
 
   def clearStatement(self):
     if self.token.tag == Tag.CLEAR:
       self.check(Tag.CLEAR)
+
       self.check(ord("("))
       self.check(ord(")"))
 
@@ -578,76 +595,92 @@ class Parser:
       self.error("expected a drawing statement before " + str(self.token))
 
   def setXYStatement(self):
-    if self.token.tag == Tag.SETXY:
+    if self.token.tag in self.firstSetXYStatement:
       self.check(Tag.SETXY)
+
       self.check(ord("("))
-      x_expression = self.expression()
+      x = self.expression()
+
       self.check(ord(","))
-      y_expression = self.expression()
+
+      y = self.expression()
       self.check(ord(")"))
-      return SetXY(x_expression, y_expression)
+
+      return SetXY(x, y)
     else:
-      self.error("expected SETXY statement before " + str(self.token))
+      self.error("expected a SETXY statement before " + str(self.token))
 
   def setXStatement(self):
-    if self.token.tag == Tag.SETX:
+    if self.token.tag in self.firstSetXStatement:
       self.check(Tag.SETX)
+
       self.check(ord("("))
-      expression = self.expression()
+      x = self.expression()
       self.check(ord(")"))
-      return SetX(expression)
+
+      return SetX(x)
     else:
-      self.error("expected SETX statement before " + str(self.token))
+      self.error("expected a SETX statement before " + str(self.token))
 
   def setYStatement(self):
-    if self.token.tag == Tag.SETY:
+    if self.token.tag in self.firstSetYStatement:
       self.check(Tag.SETY)
+
       self.check(ord("("))
-      expression = self.expression()
+      y = self.expression()
       self.check(ord(")"))
-      return SetY(expression)
+
+      return SetY(y)
     else:
-      self.error("expected SETY statement before " + str(self.token))
+      self.error("expected a SETY statement before " + str(self.token))
 
   def leftStatement(self):
-    if self.token.tag == Tag.LEFT:
+    if self.token.tag in self.firstLeftStatement:
       self.check(Tag.LEFT)
+
       self.check(ord("("))
-      expression = self.expression()
+      angle = self.expression()
       self.check(ord(")"))
-      return Left(expression)
+
+      return Left(angle)
     else:
-      self.error("expected LEFT statement before " + str(self.token))
+      self.error("expected a LEFT statement before " + str(self.token))
 
   def rightStatement(self):
-    if self.token.tag == Tag.RIGHT:
+    if self.token.tag in self.firstRightStatement:
       self.check(Tag.RIGHT)
-      self.check(ord("("))
-      expression = self.expression()
-      self.check(ord(")"))
-      return Right(expression)
-    else:
-      self.error("expected RIGHT statement before " + str(self.token))
 
-  def forwardStatement(self):
-    if self.token.tag == Tag.FORWARD:
-      self.check(Tag.FORWARD)
       self.check(ord("("))
-      expression = self.expression()
+      angle = self.expression()
       self.check(ord(")"))
-      return Forward(expression)
+
+      return Right(angle)
     else:
-      self.error("expected FORWARD statement before " + str(self.token))
+      self.error("expected a RIGHT statement before " + str(self.token))
 
   def backwardStatement(self):
-    if self.token.tag == Tag.BACKWARD:
+    if self.token.tag in self.firstBackwardStatement:
       self.check(Tag.BACKWARD)
+
       self.check(ord("("))
-      expression = self.expression()
+      distance = self.expression()
       self.check(ord(")"))
-      return Backward(expression)
+
+      return Backward(distance)
     else:
       self.error("expected BACKWARD statement before " + str(self.token))
+
+  def forwardStatement(self):
+    if self.token.tag in self.firstForwardStatement:
+      self.check(Tag.FORWARD)
+
+      self.check(ord("("))
+      distance = self.expression()
+      self.check(ord(")"))
+
+      return Forward(distance)
+    else:
+      self.error("expected FORWARD statement before " + str(self.token))
 
   def movementStatement(self):
     if self.token.tag in self.firstMovementStatement:
@@ -670,54 +703,45 @@ class Parser:
     else:
       self.error("expected a movement statement before " + str(self.token))
 
-  def assigmentStatement(self):
+  def assignmentStatement(self):
     if self.token.tag == Tag.ID:
-      current = self.token  # capturamos el identificador
+      id = self.token.value
+      line = self.lexer.line
       self.check(Tag.ID)
-
       self.check(Tag.ASSIGN)
-
-      expr = self.expression()
-
-      return Assigment(current.value, expr, self.lexer.line)
+      exp = self.expression()
+      return Assignment(id, exp, line)
     else:
       self.error("expected an ASSIGNMENT statement before " + str(self.token))
 
-  def identifierList(self):
-    identifiers = []
-    while self.token.tag == ord(","):
+  def identifierList(self, idList):
+    if self.token.tag == ord(","):
       self.check(ord(","))
-      if self.token.tag == Tag.ID:
-        identifiers.append(self.token.value)
-        self.check(Tag.ID)
-      else:
-        self.error("expected an identifier after ','")
+      id = IdDeclaration(self.token.value, self.lexer.line)
+      self.check(Tag.ID)
+      node = IdDeclarationList(id, idList)
 
-    return identifiers
+      return self.identifierList(node)
+    else:
+      return idList
 
   def declarationStatement(self):
-    self.check(Tag.VAR)
-
-    if self.token.tag == Tag.ID:
-      identifiers = [self.token.value]
+    if self.token.tag == Tag.VAR:
+      self.check(Tag.VAR)
+      node = IdDeclaration(self.token.value, self.lexer.line)
       self.check(Tag.ID)
-      identifiers += self.identifierList()
+      nodeList = self.identifierList(None)
 
-      # Creamos un StatementSequence anidado de declaraciones individuales
-      seq = None
-      for varname in reversed(identifiers):
-        seq = StatementSequence(IdDeclaration(varname, self.lexer.line), seq)
-      return seq
-
+      return Declaration(node, nodeList)
     else:
-      self.error("expected an identifier after VAR")
+      self.error("expected a DECLARATION statement before " + str(self.token))
 
   def simpleStatement(self):
     if self.token.tag in self.firstSimpleStatement:
       if self.token.tag == Tag.VAR:
         return self.declarationStatement()
       elif self.token.tag == Tag.ID:
-        return self.assigmentStatement()
+        return self.assignmentStatement()
       elif self.token.tag in self.firstMovementStatement:
         return self.movementStatement()
       elif self.token.tag in self.firstDrawingStatement:
@@ -737,20 +761,17 @@ class Parser:
       self.error("expected a statement before " + str(self.token))
 
   def statementSequence(self):
-    if self.token.tag in self.firstStatement:
-      stmt = self.statement()
-      rest = self.statementSequence()
-      return StatementSequence(stmt, rest)
+    if self.token.tag in self.firstStatementSequence:
+      statement = self.statement()
+      sequence = self.statementSequence()
+      return StatementSequence(statement, sequence)
     else:
       return None
 
   def program(self):
-    if self.token.tag in self.firstProgram:
-      sequence = self.statementSequence()
-      if self.token.tag == Tag.EOF:
-        return Program(sequence)
-      else:
-        print(str(self.token))
-        self.error("ilegal start of a statement")
+    statements = self.statementSequence()
+    if self.token.tag == Tag.EOF:
+      return Program(statements)
     else:
-      self.error("expected a statement before " + str(self.token))
+      print(str(self.token))
+      self.error("Illegal start of a statement")
